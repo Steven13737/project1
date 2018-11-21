@@ -25,7 +25,7 @@ app = Flask(__name__, template_folder=tmpl_dir)
 
 
 
-# XXX: The Database URI should be in the format of: 
+# XXX: The Database URI should be in the format of:
 #
 #     postgresql://USER:PASSWORD@<IP_OF_POSTGRE_SQL_SERVER>/<DB_NAME>
 #
@@ -36,8 +36,8 @@ app = Flask(__name__, template_folder=tmpl_dir)
 # For your convenience, we already set it to the class database
 
 # Use the DB credentials you received by e-mail
-DB_USER = "YOUR_DB_USERNAME_HERE"
-DB_PASSWORD = "YOUR_DB_PASSWORD_HERE"
+DB_USER = "yq2247"
+DB_PASSWORD = "694574bd"
 
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
 
@@ -50,20 +50,23 @@ DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/w4111"
 engine = create_engine(DATABASEURI)
 
 
+
+
+
 # Here we create a test table and insert some values in it
-engine.execute("""DROP TABLE IF EXISTS test;""")
-engine.execute("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);""")
-engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
+#engine.execute("""DROP TABLE IF EXISTS test;""")
+#engine.execute("""CREATE TABLE IF NOT EXISTS test (
+#  id serial,
+#  name text
+#);""")
+#engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
 
 
 
 @app.before_request
 def before_request():
   """
-  This function is run at the beginning of every web request 
+  This function is run at the beginning of every web request
   (every time you enter an address in the web browser).
   We use it to setup a database connection that can be used throughout the request
 
@@ -97,7 +100,7 @@ def teardown_request(exception):
 #       @app.route("/foobar/", methods=["POST", "GET"])
 #
 # PROTIP: (the trailing / in the path is important)
-# 
+#
 # see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
@@ -120,7 +123,7 @@ def index():
   #
   # example of a database query
   #
-  cursor = g.conn.execute("SELECT name FROM test")
+  cursor = g.conn.execute("SELECT name FROM Restaurant LIMIT 5")
   names = []
   for result in cursor:
     names.append(result['name'])  # can also be accessed using result[0]
@@ -135,14 +138,14 @@ def index():
   # You can see an example template in templates/index.html
   #
   # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
+  # for example, "data" key in the context variable defined below will be
   # accessible as a variable in index.html:
   #
   #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
   #     <div>{{data}}</div>
-  #     
+  #
   #     # creates a <div> tag for each element in data
-  #     # will print: 
+  #     # will print:
   #     #
   #     #   <div>grace hopper</div>
   #     #   <div>alan turing</div>
@@ -163,7 +166,7 @@ def index():
 
 #
 # This is an example of a different path.  You can see it at
-# 
+#
 #     localhost:8111/another
 #
 # notice that the functio name is another() rather than index()
@@ -182,6 +185,24 @@ def add():
   cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
   g.conn.execute(text(cmd), name1 = name, name2 = name);
   return redirect('/')
+
+#FInd Restaurant based on some condition:
+@app.route('/search', methods=['POST'])
+def search():
+    place = request.form['Place']
+    type = request.form['Type']
+    print place
+    print type
+    cmd = "SELECT * FROM Restaurant WHERE name=(:place1) and price_level=(:type1)";
+    cursor = g.conn.execute(text(cmd), place1 = place, type1 = type);
+    searchres = []
+    for result in cursor:
+        for i in range(len(result)):
+            searchres.append(result[i])  # can also be accessed using result[0]
+    cursor.close()
+    print searchres
+    context2 = dict(searchres = searchres)
+    return render_template("searchresult.html", **context2)
 
 
 @app.route('/login')
