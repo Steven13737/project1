@@ -21,5 +21,39 @@
   </form>
 
 
-  </body>
+  <form  action="/search" method="POST">
+    <p>Condition:
+    <label>The Price_level you can accept:</label>
+    <select  name="Price_level">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="3">4</option>
+    </select>
+
+    <label>The Cuisine_Type you like:</label>
+    <select  name="Cuisine_Type">
+    {% for n in cui %}
+    <div><option value={{n}}>{{n}}</option></div>
+    {% endfor %}
+    </select>
+
+    <input type="submit" value="search">
+    </p>
+  </form>
+
+
+
+  {% with messages = get_flashed_messages(category_filter=["ok"]) %}
+    {% if messages %}
+      <script>
+        var messages = {{ messages | safe }};
+        for (var i=0; i<messages.length; i++) {
+          alert(messages[i]);
+        }
+      </script>
+    {% endif %}
+  {% endwith %}
+
+</body>
 </html>

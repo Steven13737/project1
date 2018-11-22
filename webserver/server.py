@@ -187,55 +187,78 @@ def add():
   g.conn.execute(text(cmd), name1 = name, name2 = name);
   return redirect('/')
 
-#Find Restaurant based on some condition:
-@app.route('/search', methods=['POST'])
-def search():
-    place = request.form['Place']
-    type = request.form['Type']
-    print place
-    print type
-    cmd = "SELECT * FROM Restaurant WHERE name=(:place1) and price_level=(:type1)";
-    cursor = g.conn.execute(text(cmd), place1 = place, type1 = type);
-    searchres = []
-    for result in cursor:
-        for i in range(len(result)):
-            searchres.append(result[i])  # can also be accessed using result[0]
-    cursor.close()
-    print searchres
-    context2 = dict(searchres = searchres)
-    return render_template("searchresult.html", **context2)
 
 
+################################################################################
 @app.route('/login', methods=['post'])
 def login():
-    password = request.form['password'];
-    username = request.form['username'];
-    print password, username
-    cmd = "SELECT Name FROM Customer WHERE Email=(:username) and Password=(:password)";
-    cursor = g.conn.execute(text(cmd), username = username, password = password);
-    results = []
+    pw = request.form['password']
+    un = request.form['username']
+
+    #Search CUstomer
+    cmd = 'SELECT * FROM Customer WHERE Email = (:un1) AND Password = (:pw1)';
+    cursor = g.conn.execute(text(cmd),un1 = un, pw1 =pw)
+    record = []
     for result in cursor:
-        results.append(result[0])
+        record.append(result[0])
     cursor.close()
-    print results
-    if results:
-        #session['logged'] = True;
-        context2 = dict(username = results[0])
-        return render_template("LogForCustomer.html",**context2)
+
+    #Search Manager
+    cmd1 = 'SELECT * FROM Manager WHERE Email = (:un2) AND Password = (:pw2)';
+    cursor1 = g.conn.execute(text(cmd1),un2 = un, pw2 =pw)
+    record1 = []
+    for result in cursor1:
+        record1.append(result[0])
+    cursor1.close()
+
+    if record:
+        if request.form['attribute'] == 'customer':
+            #session['logged_in'] = True
+
+            #Search cuisine type
+            cmd1 = 'SELECT distinct Cuisine_Type FROM CuisineType'
+            cursor1 = g.conn.execute(text(cmd1));
+            cui = []
+            for result in cursor1:
+                cui.append(result[0])
+                cursor.close()
+            print cui
+
+            context2 = dict(cui = cui)
+            flash('Login scuuess','ok')
+            return render_template("LogForCustomer.html",**context2)
+        else:
+            flash('Wrong username or password','no')
+            return render_template("index.html")
+    if record1:
+        if request.form['attribute'] == 'manager':
+            #session['logged_in'] = True
+            flash('Login scuuess','okmanager')
+            return render_template("LogForManager.html")
+        else:
+            flash('Wrong username or password','no')
+            return render_template("index.html")
     else:
+        flash('Wrong username or password','no')
         return render_template("index.html")
 
+
+#######################################################################
 #Sign Up
 @app.route('/signup', methods=['post'])
 def signup():
     return render_template("signup.html")
 
-#Sign Up Success
+#Sign Up Judgement
 @app.route('/signupsuccess', methods=['post'])
 def signupsuccess():
     password = request.form['password'];
     username = request.form['username'];
     name = request.form['name'];
+    if not name or not username or not password:
+        flash('Please Input all boxes','signupfail')
+        return render_template("signup.html")
+
     print password, username, name;
 
     #Find cid
@@ -260,7 +283,8 @@ def signupsuccess():
         results.append(result[0])
     cursor.close()
     print results
-    return index()
+    flash('Welcome!','siguupsuccess')
+    return render_template("index.html")
 
 
 
@@ -277,6 +301,27 @@ def locate():
     cursor.close()
     context = dict(data = Name)
     return render_template("locate.html", **context)
+
+#Search restaurant based on conditions
+@app.route('/search', methods=['POST'])
+def search():
+
+    pl = request.form['Price_level']
+    ct = request.form['Cuisine_Type']
+    print pl
+    print ct
+    cmd = 'SELECT R.Name,R.LongAddress FROM Restaurant R,CuisineType C  WHERE R.Price_level = (:pl1) AND C.Cuisine_Type = (:ct1) AND C.RID = R.RID';
+    cursor = g.conn.execute(text(cmd),pl1 = pl,ct1 = ct);
+    results = []
+    for result in cursor:
+        for i in range(len(result)):
+            results.append(result[i])  # can also be accessed using result[0]
+    cursor.close()
+    context = dict(data = results)
+    return render_template("search.html", **context)
+
+
+
 
 if __name__ == "__main__":
   import click

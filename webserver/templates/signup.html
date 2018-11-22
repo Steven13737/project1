@@ -6,3 +6,14 @@ Hello, pleaes input the following information:
   <input type="name" name="name" placeholder="Name">
   <input type="submit" value="Submit">
 </form>
+
+{% with messages = get_flashed_messages(category_filter=["signupfail"]) %}
+  {% if messages %}
+    <script>
+      var messages = {{ messages | safe }};
+      for (var i=0; i<messages.length; i++) {
+        alert(messages[i]);
+      }
+    </script>
+  {% endif %}
+{% endwith %}

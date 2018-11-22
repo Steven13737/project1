@@ -24,23 +24,6 @@
 <p>Name of new computer scientist: <input type="text" name="name"> <input type="submit" value="Add"></p>
 </form>
 
-
-
-<form action="/search" method="POST">
-<label>Condition Select</label>
-<select name="Place">
-<option value="Le Petit Souffle">Le Petit Souffle</option>
-<option value="Izakaya Kikufuji">Le Petit Souffle</option>
-</select>
-<select name = "Type">
-<option value="3">3</option>
-<option value="4">4</option>
-</select>
-<input type="submit" value = "Search">
-</form>
-
-
-
 Log test 2
 {% block body %}
 {% if session['logged'] %}
@@ -49,6 +32,11 @@ Log test 2
 <form action="/login" method="POST">
   <input type="username" name="username" placeholder="Username">
   <input type="password" name="password" placeholder="Password">
+  <label>I'm</label>
+      <select name="attribute">
+        <option value="customer">'customer'</option>
+        <option value="manager">'manager'</option>
+      </select> 
   <input type="submit" value="Log in">
 </form>
 {% endif %}
@@ -58,6 +46,17 @@ Sign up
 <form action="/signup" method="POST">
 <input type="submit" value = "Sign Up">
 </form>
+
+{% with messages = get_flashed_messages(category_filter=["no","siguupsuccess"]) %}
+  {% if messages %}
+    <script>
+      var messages = {{ messages | safe }};
+      for (var i=0; i<messages.length; i++) {
+        alert(messages[i]);
+      }
+    </script>
+  {% endif %}
+{% endwith %}
 
 </body>
 </html>
