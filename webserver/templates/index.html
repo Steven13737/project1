@@ -8,6 +8,7 @@
 
 
 <body>
+
   <h1>Some famous Computer Scientists</h1>
   <div>{{data}}</div>
 
@@ -35,11 +36,28 @@
 <option value="3">3</option>
 <option value="4">4</option>
 </select>
-<input type="submit" value = "Search"></button>
+<input type="submit" value = "Search">
 </form>
 
 
+
+Log test 2
+{% block body %}
+{% if session['logged'] %}
+<p>You're logged in already!</p>
+{% else %}
+<form action="/login" method="POST">
+  <input type="username" name="username" placeholder="Username">
+  <input type="password" name="password" placeholder="Password">
+  <input type="submit" value="Log in">
+</form>
+{% endif %}
+{% endblock %}
+
+Sign up
+<form action="/signup" method="POST">
+<input type="submit" value = "Sign Up">
+</form>
+
 </body>
-
-
 </html>

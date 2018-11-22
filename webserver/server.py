@@ -18,12 +18,13 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response
+from flask import Flask, request, render_template, g, redirect, Response,session,flash
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
-
+# Set the secret key to some random bytes. Keep this really secret!
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 # XXX: The Database URI should be in the format of:
 #
@@ -186,7 +187,7 @@ def add():
   g.conn.execute(text(cmd), name1 = name, name2 = name);
   return redirect('/')
 
-#FInd Restaurant based on some condition:
+#Find Restaurant based on some condition:
 @app.route('/search', methods=['POST'])
 def search():
     place = request.form['Place']
@@ -205,11 +206,77 @@ def search():
     return render_template("searchresult.html", **context2)
 
 
-@app.route('/login')
+@app.route('/login', methods=['post'])
 def login():
-    abort(401)
-    this_is_never_executed()
+    password = request.form['password'];
+    username = request.form['username'];
+    print password, username
+    cmd = "SELECT Name FROM Customer WHERE Email=(:username) and Password=(:password)";
+    cursor = g.conn.execute(text(cmd), username = username, password = password);
+    results = []
+    for result in cursor:
+        results.append(result[0])
+    cursor.close()
+    print results
+    if results:
+        #session['logged'] = True;
+        context2 = dict(username = results[0])
+        return render_template("LogForCustomer.html",**context2)
+    else:
+        return render_template("index.html")
 
+#Sign Up
+@app.route('/signup', methods=['post'])
+def signup():
+    return render_template("signup.html")
+
+#Sign Up Success
+@app.route('/signupsuccess', methods=['post'])
+def signupsuccess():
+    password = request.form['password'];
+    username = request.form['username'];
+    name = request.form['name'];
+    print password, username, name;
+
+    #Find cid
+    cmd = "SELECT MAX(CID) FROM Customer"
+    cursor = g.conn.execute(text(cmd));
+    results = []
+    for result in cursor:
+        results.append(result[0])
+    cursor.close()
+    print results
+    CID = int(results[0]) +1
+
+
+    #Insert User
+    cmd = 'INSERT INTO Customer VALUES (:CID,:Email,:Password,:Name)'
+    cursor = g.conn.execute(text(cmd),CID = CID,Email = username, Password = password, Name = name);
+    cursor.close()
+    cmd = "SELECT MAX(CID) FROM Customer"
+    cursor = g.conn.execute(text(cmd));
+    results = []
+    for result in cursor:
+        results.append(result[0])
+    cursor.close()
+    print results
+    return index()
+
+
+
+#Locate the nearest 5 restaurants
+@app.route('/locate', methods=['POST'])
+def locate():
+    lo = request.form['Longitude']
+    la = request.form['Latitude']
+    cmd = 'SELECT R.name FROM  Restaurant R,Address A WHERE R.LongAddress = A.LongAddress ORDER BY (A.Longitude - (:lo1))^2 + (A.Latitude-(:la1))^2 LIMIT 5';
+    cursor = g.conn.execute(text(cmd),lo1 = lo,la1 = la);
+    Name = []
+    for result in cursor:
+      Name.append(result[0])  # can also be accessed using result[0]
+    cursor.close()
+    context = dict(data = Name)
+    return render_template("locate.html", **context)
 
 if __name__ == "__main__":
   import click
