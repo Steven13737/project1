@@ -36,18 +36,17 @@ Log test 2
       <select name="attribute">
         <option value="customer">'customer'</option>
         <option value="manager">'manager'</option>
-      </select> 
+      </select>
   <input type="submit" value="Log in">
 </form>
 {% endif %}
 {% endblock %}
 
 Sign up
-<form action="/signup" method="POST">
-<input type="submit" value = "Sign Up">
-</form>
+<h2><a href="/sign">Still don't have an account? </a></h2>
 
-{% with messages = get_flashed_messages(category_filter=["no","siguupsuccess"]) %}
+
+{% with messages = get_flashed_messages(category_filter=["no","siguupsuccess","logout"]) %}
   {% if messages %}
     <script>
       var messages = {{ messages | safe }};

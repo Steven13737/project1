@@ -8,10 +8,13 @@
     Your are our customer, welcome!
     <div >  {{username}}  </div>
 
-  <form method="get" action="/">
-      <button type="submit">Logout</button>
+  <form method="post" action="/logout">
+    <input type="submit" value="logout">
   </form>
 
+
+
+<h1>You can get the nearest restaurant</h1>
   <form  action="/locate" method="post">
   <p>Please enter your location:
   <input type="text" name="Longitude">
@@ -20,6 +23,8 @@
   </p >
   </form>
 
+
+<h1>You can search for the restaurant you like</h1>
 
   <form  action="/search" method="POST">
     <p>Condition:
@@ -42,6 +47,29 @@
     </p>
   </form>
 
+<h1>These are history restaurants</h1>
+<!-- Search Consumed Restaurants -->
+<div>
+  {% for n in restaurants %}
+  <div>{{n}}</div>
+  {% endfor %}
+</div>
+
+<h1>You can comment the restaurant which you haven't commented</h1>
+<!-- Comment Consumed Restaurants -->
+<form action="/comment" method="post">
+<label>The restaurant your want to comment:</label>
+<select  name="commentname">
+{% for n in crestaurant %}
+<div><option value="{{n}}">{{n}}</option></div>
+{% endfor %}
+</select>
+Rate <input type="text" name="rate">
+C0mment<input type="text" name = "comment">
+<input type="submit" value="comment">
+</form>
+
+<h1>You can vote for restaurant you haven't voted</h1>
 
 
   {% with messages = get_flashed_messages(category_filter=["ok","buysuccess"]) %}

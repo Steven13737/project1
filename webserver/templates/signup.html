@@ -1,19 +1,46 @@
 Hello, pleaes input the following information:
 
-<form action="/signupsuccess" method="POST">
+<!-- <form action="/signupsuccess" method="POST">
   <input type="username" name="username" placeholder="Username">
   <input type="password" name="password" placeholder="Password">
   <input type="name" name="name" placeholder="Name">
   <input type="submit" value="Submit">
-</form>
+</form> -->
+<html>
+  <style>
+    body{
+      font-size: 15pt;
+      font-family: arial;
+    }
+  </style>
+<body>
+  <form action="/signupsuccess" method="POST">
+    <p>
+    <label>Email:</label>
+    <input type="text" name="username">
+    <label>Password:</label>
+    <input type="text" name="password">
+    <label>Name:</label>
+    <input type="text" name="name">
+    <label>I'm a :</label>
+    <select name="attribute">
+      <option value="customer">customer</option>
+      <option value="manager">manager</option>
+    </select>
+    <input type="submit" value="sign up">
+    </p >
+  </form>
 
-{% with messages = get_flashed_messages(category_filter=["signupfail"]) %}
-  {% if messages %}
-    <script>
-      var messages = {{ messages | safe }};
-      for (var i=0; i<messages.length; i++) {
-        alert(messages[i]);
-      }
-    </script>
-  {% endif %}
-{% endwith %}
+
+  {% with messages = get_flashed_messages(category_filter=["signupfail"]) %}
+    {% if messages %}
+      <script>
+        var messages = {{ messages | safe }};
+        for (var i=0; i<messages.length; i++) {
+          alert(messages[i]);
+        }
+      </script>
+    {% endif %}
+  {% endwith %}
+</body>
+</html>

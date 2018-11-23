@@ -19,6 +19,7 @@ import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response,session,flash
+import CustomerPageInfo as Cus
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -105,6 +106,19 @@ def teardown_request(exception):
 # see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
+
+
+#define a get result functions
+def getresult(cursor):
+    results = []
+    for result in cursor:
+        for i in range(len(result)):
+            results.append(result[i])  # can also be accessed using result[0]
+    cursor.close()
+    #print(results)
+    return results
+
+
 @app.route('/')
 def index():
   """
@@ -189,7 +203,14 @@ def add():
 
 
 
-################################################################################
+@app.route('/logout', methods=['post'])
+def logout():
+    session.pop('username')
+    session['logged_in'] = False
+    flash('Logout Success','logout')
+    return render_template("index.html")
+###########################Log IN #############################################
+#Log in Process
 @app.route('/login', methods=['post'])
 def login():
     pw = request.form['password']
@@ -225,7 +246,59 @@ def login():
                 cursor.close()
             print cui
 
-            context2 = dict(cui = cui)
+            #search restaurant
+            #FInd user's cid
+            username = session.get('username')
+            #print username
+            cmd = "select CID from Customer where email = (:username)"
+            cursor = g.conn.execute(text(cmd),username = username);
+            CID = getresult(cursor);
+
+            cmd = "select r.name, d.time_num from DateConsume d, Restaurant r where d.CID = (:CID) and r.RID = d.RID "
+            cursor = g.conn.execute(text(cmd),CID = CID[0]);
+            restaurant = getresult(cursor);
+
+            #Find the restaurant name need to be commented
+            cmd = "with NeedtoC(CID,RID,time) as ( \
+                    select CID,RID,time_num from DateConsume where CID = (:CID)\
+                    except \
+                    select CID,RID,time_num from Comment where CID=(:CID))\
+                    select r.name,r.RID from NeedtoC N, Restaurant r where N.RID = r.RID "
+            cursor = g.conn.execute(text(cmd),CID = CID[0]);
+            crestaurant = getresult(cursor);
+            print crestaurant
+
+            #Find the restaurant time need to be commented
+            cmd = "with NeedtoC(CID,RID,time) as ( \
+                    select CID,RID,time_num from DateConsume where CID = (:CID)\
+                    except \
+                    select CID,RID,time_num from Comment where CID=(:CID))\
+                    select N.time from NeedtoC N, Restaurant r where N.RID = r.RID "
+            cursor = g.conn.execute(text(cmd),CID = CID[0]);
+            crestaurant_time = getresult(cursor);
+
+            #Create Seeion as dictionary
+            # name = []
+            # mid = []
+            # i=0
+            # while(i<len(crestaurant)):
+            #     name.append(crestaurant[i])
+            #     i=i+1
+            #     mid.append(crestaurant[i])
+            #     i=i+1
+            # namedict = dict(zip(name,mid))
+            # print namedict
+            namedict = Cus.GetDict(crestaurant);
+            session['NeedComment'] = namedict;
+
+            cres = []
+            j = 0
+            for i in range(len(crestaurant_time)):
+                cres.append(crestaurant[j] + ","+ str(crestaurant_time[i]))
+                j = j+2
+
+
+            context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres)
             flash('Login scuuess','ok')
             return render_template("LogForCustomer.html",**context2)
         else:
@@ -244,51 +317,52 @@ def login():
         return render_template("index.html")
 
 
-#######################################################################
+########################Sign Up Porcess########################################
 #Sign Up
-@app.route('/signup', methods=['post'])
-def signup():
-    return render_template("signup.html")
+@app.route('/sign')
+def sign():
+  return render_template("signup.html")
 
 #Sign Up Judgement
 @app.route('/signupsuccess', methods=['post'])
 def signupsuccess():
-    password = request.form['password'];
-    username = request.form['username'];
-    name = request.form['name'];
-    if not name or not username or not password:
-        flash('Please Input all boxes','signupfail')
-        return render_template("signup.html")
+    username = request.form['username']
+    password = request.form['password']
+    name = request.form['name']
 
-    print password, username, name;
+    if not username or not password or not name:
+        flash('Email and Password can not be empty','signupfail')
+        return render_template('signup.html')
+    if request.form['attribute'] == 'customer':
+        cmd_c = 'SELECT max(CID) FROM Customer';
+        cursor_c = g.conn.execute(text(cmd_c));
+        result_c = []
+        for result in cursor_c:
+            result_c.append(result[0])
+        cursor_c.close()
+        cid = int(result_c[0]) + 1
+        cmd_c_2 = 'INSERT INTO Customer VALUES (:CID,:Email,:Password,:Name)'
 
-    #Find cid
-    cmd = "SELECT MAX(CID) FROM Customer"
-    cursor = g.conn.execute(text(cmd));
-    results = []
-    for result in cursor:
-        results.append(result[0])
-    cursor.close()
-    print results
-    CID = int(results[0]) +1
+        g.conn.execute(text(cmd_c_2),CID = cid,Email = username, Password = password, Name = name);
+        flash('Welcome!','siguupsuccess')
+        return render_template("index.html")
 
-
-    #Insert User
-    cmd = 'INSERT INTO Customer VALUES (:CID,:Email,:Password,:Name)'
-    cursor = g.conn.execute(text(cmd),CID = CID,Email = username, Password = password, Name = name);
-    cursor.close()
-    cmd = "SELECT MAX(CID) FROM Customer"
-    cursor = g.conn.execute(text(cmd));
-    results = []
-    for result in cursor:
-        results.append(result[0])
-    cursor.close()
-    print results
-    flash('Welcome!','siguupsuccess')
-    return render_template("index.html")
+    if request.form['attribute'] == 'manager':
+        cmd_m = 'SELECT max(MID) FROM Manager';
+        cursor_m = g.conn.execute(text(cmd_m));
+        result_m = []
+        for result in cursor_m:
+            result_m.append(result[0])
+        cursor_m.close()
+        mid = int(result_m[0]) + 1
+        cmd_m_2 = 'INSERT INTO Manager VALUES (:MID,:Email,:Password,:Name)'
+        g.conn.execute(text(cmd_m_2),MID = mid,Email = username, Password = password, Name = name);
+        flash('Welcome!','siguupsuccess')
+        return render_template("index.html")
 
 
 
+########################Locate and Search for Customers#########################
 #Locate the nearest 5 restaurants
 @app.route('/locate', methods=['POST'])
 def locate():
@@ -322,18 +396,6 @@ def search():
     print(results)
     context = dict(data = results)
     return render_template("search.html", **context)
-
-
-#define a get result functions
-def getresult(cursor):
-    results = []
-    for result in cursor:
-        for i in range(len(result)):
-            results.append(result[i])  # can also be accessed using result[0]
-    cursor.close()
-    #print(results)
-    return results
-
 
 
 ###############################################################################
@@ -374,6 +436,44 @@ def buy():
     context2 = dict(cui = cui)
     flash('Thanks for consume','buysuccess')
     return render_template("LogForCustomer.html",**context2)
+
+
+##########################Process Comment#######################################
+@app.route('/comment', methods=['POST'])
+def comment():
+    restaurant = request.form['commentname']
+    print restaurant
+    comment = request.form['comment']
+    print comment
+
+    #Get MID
+    name = restaurant.split(",")
+    #print name
+    restaurants = session.get('NeedComment')
+    #print restaurants
+    RID = restaurants[name[0]]
+    #print MID
+    session.pop('NeedComment')
+
+    #Get Date
+    date = name[1]
+    print date
+
+    #Get cid
+    username = session.get('username')
+    #print username
+    cmd = "select CID from Customer where email = (:username)"
+    cursor = g.conn.execute(text(cmd),username = username);
+    CID = getresult(cursor);
+    print CID
+
+    #Insert Comment
+    rate = request.form['rate']
+    print rate
+    cmd = "INSERT INTO Comment VALUES (:CID, :RID, :date, :rate, :comment)"
+    cursor = g.conn.execute(text(cmd), CID = CID[0], RID = int(RID),date = date, rate = float(rate[0]), comment = comment);
+
+    return render_template("LogForCustomer.html")
 
 
 if __name__ == "__main__":
