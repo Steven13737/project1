@@ -213,7 +213,8 @@ def login():
 
     if record:
         if request.form['attribute'] == 'customer':
-            #session['logged_in'] = True
+            session['logged_in'] = True
+            session['username'] = un
 
             #Search cuisine type
             cmd1 = 'SELECT distinct Cuisine_Type FROM CuisineType'
@@ -310,17 +311,69 @@ def search():
     ct = request.form['Cuisine_Type']
     print pl
     print ct
-    cmd = 'SELECT R.Name,R.LongAddress FROM Restaurant R,CuisineType C  WHERE R.Price_level = (:pl1) AND C.Cuisine_Type = (:ct1) AND C.RID = R.RID';
+    #cmd = 'SELECT R.Name,R.LongAddress FROM Restaurant R,CuisineType C  WHERE R.Price_level = (:pl1) AND C.Cuisine_Type = (:ct1) AND C.RID = R.RID';
+    cmd = 'SELECT R.LongAddress FROM Restaurant R,CuisineType C  WHERE R.Price_level = (:pl1) AND C.Cuisine_Type = (:ct1) AND C.RID = R.RID';
     cursor = g.conn.execute(text(cmd),pl1 = pl,ct1 = ct);
     results = []
     for result in cursor:
         for i in range(len(result)):
             results.append(result[i])  # can also be accessed using result[0]
     cursor.close()
+    print(results)
     context = dict(data = results)
     return render_template("search.html", **context)
 
 
+#define a get result functions
+def getresult(cursor):
+    results = []
+    for result in cursor:
+        for i in range(len(result)):
+            results.append(result[i])  # can also be accessed using result[0]
+    cursor.close()
+    #print(results)
+    return results
+
+
+
+###############################################################################
+#Buy ticket for a restaurants
+@app.route('/buy', methods=['POST'])
+def buy():
+    name2 = request.form['buyname']
+    print name2
+
+    #FInd user's cid
+    username = session.get('username')
+    print username
+    cmd = "select CID from Customer where email = (:username)"
+    cursor = g.conn.execute(text(cmd),username = username);
+    CID = getresult(cursor);
+    #print CID
+
+
+    #Find restaurant's RID
+    cmd = "select RID from Restaurant where LongAddress = (:address)"
+    cursor = g.conn.execute(text(cmd),address = name2);
+    RID = getresult(cursor)
+    print RID
+
+    #Get current time
+    import time
+    date = time.strftime('%Y-%m-%d',time.localtime(time.time()))
+    print date
+
+    #Insert new consume record
+    cmd = "INSERT INTO DateConsume VALUES (:CID,:RID,:Date)"
+    cursor = g.conn.execute(text(cmd),CID = CID[0], RID = int(RID[0]), Date = date);
+
+    #Search cuisine type
+    cmd1 = 'SELECT distinct Cuisine_Type FROM CuisineType'
+    cursor1 = g.conn.execute(text(cmd1));
+    cui = getresult(cursor1)
+    context2 = dict(cui = cui)
+    flash('Thanks for consume','buysuccess')
+    return render_template("LogForCustomer.html",**context2)
 
 
 if __name__ == "__main__":

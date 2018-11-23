@@ -9,9 +9,22 @@
   <h1>Some restaurants we found for you:</h1>
   <div>{{results}}</div>
   <div>
+
     {% for n in data %}
     <div>{{n}}</div>
     {% endfor %}
+
+    <form action="/buy" method="post">
+    <label>The restaurant your want to buy:</label>
+    <select  name="buyname">
+    {% for n in data %}
+    <div><option value="{{n}}">{{n}}</option></div>
+    {% endfor %}
+    </select>
+    <input type="submit" value="buy">
+    </form>
+
+
   </div>
 </body>
 </html>

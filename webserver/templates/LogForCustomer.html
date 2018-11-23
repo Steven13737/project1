@@ -28,7 +28,7 @@
       <option value="1">1</option>
       <option value="2">2</option>
       <option value="3">3</option>
-      <option value="3">4</option>
+      <option value="4">4</option>
     </select>
 
     <label>The Cuisine_Type you like:</label>
@@ -44,7 +44,7 @@
 
 
 
-  {% with messages = get_flashed_messages(category_filter=["ok"]) %}
+  {% with messages = get_flashed_messages(category_filter=["ok","buysuccess"]) %}
     {% if messages %}
       <script>
         var messages = {{ messages | safe }};
