@@ -64,15 +64,30 @@
 <div><option value="{{n}}">{{n}}</option></div>
 {% endfor %}
 </select>
-Rate <input type="text" name="rate">
-C0mment<input type="text" name = "comment">
+Rate <input type="number" name="rate" required="required" min="0.1" max="4.9" step="0.1">
+Comment<input type="text" name = "comment" required="required">
 <input type="submit" value="comment">
 </form>
 
 <h1>You can vote for restaurant you haven't voted</h1>
+<div>
+  {% for n in voterestaurant %}
+  <div>{{n}}</div>
+  {% endfor %}
+</div>
+
+<form action="/vote" method="post">
+<label>The restaurant your want to comment:</label>
+<select  name="votename">
+{% for n in voterestaurant %}
+<div><option value="{{n}}">{{n}}</option></div>
+{% endfor %}
+</select>
+<input type="submit" value="vote">
+</form>
 
 
-  {% with messages = get_flashed_messages(category_filter=["ok","buysuccess"]) %}
+  {% with messages = get_flashed_messages(category_filter=["ok","buysuccess",'VoteSuccess','CommentSuccess']) %}
     {% if messages %}
       <script>
         var messages = {{ messages | safe }};

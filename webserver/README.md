@@ -1,5 +1,7 @@
 
 
+This is a Restaurant Recommondation Website
+
 Install pip if needed
 
         sudo apt-get install python-pip
@@ -22,5 +24,3 @@ Run it in the shell
 Get help:
 
         python server.py --help
-
-      

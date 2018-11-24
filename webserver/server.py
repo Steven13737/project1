@@ -238,67 +238,31 @@ def login():
             session['username'] = un
 
             #Search cuisine type
-            cmd1 = 'SELECT distinct Cuisine_Type FROM CuisineType'
-            cursor1 = g.conn.execute(text(cmd1));
-            cui = []
-            for result in cursor1:
-                cui.append(result[0])
-                cursor.close()
-            print cui
+            cui = Cus.GetCuisineType(g,text)
 
-            #search restaurant
-            #FInd user's cid
+            #Commont Process
+            #Get cid
             username = session.get('username')
-            #print username
-            cmd = "select CID from Customer where email = (:username)"
-            cursor = g.conn.execute(text(cmd),username = username);
-            CID = getresult(cursor);
-
-            cmd = "select r.name, d.time_num from DateConsume d, Restaurant r where d.CID = (:CID) and r.RID = d.RID "
-            cursor = g.conn.execute(text(cmd),CID = CID[0]);
-            restaurant = getresult(cursor);
-
-            #Find the restaurant name need to be commented
-            cmd = "with NeedtoC(CID,RID,time) as ( \
-                    select CID,RID,time_num from DateConsume where CID = (:CID)\
-                    except \
-                    select CID,RID,time_num from Comment where CID=(:CID))\
-                    select r.name,r.RID from NeedtoC N, Restaurant r where N.RID = r.RID "
-            cursor = g.conn.execute(text(cmd),CID = CID[0]);
-            crestaurant = getresult(cursor);
-            print crestaurant
-
-            #Find the restaurant time need to be commented
-            cmd = "with NeedtoC(CID,RID,time) as ( \
-                    select CID,RID,time_num from DateConsume where CID = (:CID)\
-                    except \
-                    select CID,RID,time_num from Comment where CID=(:CID))\
-                    select N.time from NeedtoC N, Restaurant r where N.RID = r.RID "
-            cursor = g.conn.execute(text(cmd),CID = CID[0]);
-            crestaurant_time = getresult(cursor);
-
-            #Create Seeion as dictionary
-            # name = []
-            # mid = []
-            # i=0
-            # while(i<len(crestaurant)):
-            #     name.append(crestaurant[i])
-            #     i=i+1
-            #     mid.append(crestaurant[i])
-            #     i=i+1
-            # namedict = dict(zip(name,mid))
-            # print namedict
+            CID = Cus.GetCID(g,text,username)
+            #print CID
+            #Get Restaurant need Commet
+            restaurant, crestaurant,crestaurant_time = Cus.GetResuaurant(g,text,CID)
             namedict = Cus.GetDict(crestaurant);
             session['NeedComment'] = namedict;
 
+            #Comine to a list
             cres = []
             j = 0
             for i in range(len(crestaurant_time)):
                 cres.append(crestaurant[j] + ","+ str(crestaurant_time[i]))
                 j = j+2
 
+            #Vote Process
+            VoteRestaurantName,VoteRestaurantName_RID = Cus.VoteRestaurant(g,text,CID)
+            votedict = Cus.GetDict(VoteRestaurantName_RID)
+            session['NeedVote'] = votedict
 
-            context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres)
+            context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, voterestaurant = VoteRestaurantName)
             flash('Login scuuess','ok')
             return render_template("LogForCustomer.html",**context2)
         else:
@@ -446,13 +410,13 @@ def comment():
     comment = request.form['comment']
     print comment
 
-    #Get MID
+    #Get RID
     name = restaurant.split(",")
     #print name
     restaurants = session.get('NeedComment')
     #print restaurants
     RID = restaurants[name[0]]
-    #print MID
+    #print RID
     session.pop('NeedComment')
 
     #Get Date
@@ -468,14 +432,84 @@ def comment():
     print CID
 
     #Insert Comment
-    rate = request.form['rate']
-    print rate
-    cmd = "INSERT INTO Comment VALUES (:CID, :RID, :date, :rate, :comment)"
-    cursor = g.conn.execute(text(cmd), CID = CID[0], RID = int(RID),date = date, rate = float(rate[0]), comment = comment);
+    #rate = request.form['rate']
+    #print rate
+    #cmd = "INSERT INTO Comment VALUES (:CID, :RID, :date, :rate, :comment)"
+    #cursor = g.conn.execute(text(cmd), CID = CID[0], RID = int(RID),date = date, rate = float(rate[0]), comment = comment);
 
-    return render_template("LogForCustomer.html")
+    #Add All information in Customer Page#
+    #Search cuisine type
+    cui = Cus.GetCuisineType(g,text)
+    #Commont Process
+    #Get cid
+    username = session.get('username')
+    CID = Cus.GetCID(g,text,username)
+    #print CID
+    #Get Restaurant need Commet
+    restaurant, crestaurant,crestaurant_time = Cus.GetResuaurant(g,text,CID)
+    namedict = Cus.GetDict(crestaurant);
+    session['NeedComment'] = namedict;
+    #Comine to a list
+    cres = []
+    j = 0
+    for i in range(len(crestaurant_time)):
+        cres.append(crestaurant[j] + ","+ str(crestaurant_time[i]))
+        j = j+2
+    #Vote Process
+    VoteRestaurantName,VoteRestaurantName_RID = Cus.VoteRestaurant(g,text,CID)
+    votedict = Cus.GetDict(VoteRestaurantName_RID)
+    session['NeedVote'] = votedict
+    flash('Comment Success','CommentSuccess')
+    context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, voterestaurant = VoteRestaurantName)
+    return  render_template("LogForCustomer.html",**context2)
 
 
+@app.route('/vote', methods=['POST'])
+def vote():
+    restaurant = request.form['votename']
+    print restaurant
+
+    #Get RID
+    votedict = session.get('NeedVote')
+    RID = votedict[restaurant]
+    print RID
+
+    #Get cid
+    username = session.get('username')
+    CID = Cus.GetCID(g,text,username)
+    print CID
+
+    #Insert Vote Number
+    #cmd = "INSERT INTO Vote VALUES (:CID, :RID)"
+    #cursor = g.conn.execute(text(cmd), CID = CID[0], RID = int(RID));
+
+    #Add All information in Customer Page#
+    #Search cuisine type
+    cui = Cus.GetCuisineType(g,text)
+    #Commont Process
+    #Get cid
+    username = session.get('username')
+    CID = Cus.GetCID(g,text,username)
+    #print CID
+    #Get Restaurant need Commet
+    restaurant, crestaurant,crestaurant_time = Cus.GetResuaurant(g,text,CID)
+    namedict = Cus.GetDict(crestaurant);
+    session['NeedComment'] = namedict;
+    #Comine to a list
+    cres = []
+    j = 0
+    for i in range(len(crestaurant_time)):
+        cres.append(crestaurant[j] + ","+ str(crestaurant_time[i]))
+        j = j+2
+    #Vote Process
+    VoteRestaurantName,VoteRestaurantName_RID = Cus.VoteRestaurant(g,text,CID)
+    votedict = Cus.GetDict(VoteRestaurantName_RID)
+    session['NeedVote'] = votedict
+    context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, voterestaurant = VoteRestaurantName)
+    flash('Vote Success','VoteSuccess')
+    return  render_template("LogForCustomer.html",**context2)
+
+##############################################################################
 if __name__ == "__main__":
   import click
 
