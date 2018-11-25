@@ -1,12 +1,119 @@
-Hello!
+<html>
+<head>
+  <title>Login Manager</title>
+  <link rel="stylesheet" href="/static/stylelogin.css" type="text/css">
+</head>
+<body>
 
-{% with messages = get_flashed_messages(category_filter=["okmanager"]) %}
-  {% if messages %}
-    <script>
-      var messages = {{ messages | safe }};
-      for (var i=0; i<messages.length; i++) {
-        alert(messages[i]);
-      }
-    </script>
-  {% endif %}
-{% endwith %}
+  <ul>
+  <li><a>Your are our Manager, welcome! {{username}}</a></li>
+  <li><a>
+      <form method="post" action="/logout">
+        <input type="submit" value="logout"  class="btn btn-primary btn-large btn-block">
+      </form>
+  </a></li>
+</ul>
+
+  <div class="box">
+    <div class="app-title">
+      <h1>Here are your restaurants</h1>
+    </div>
+    <div class="app-title">
+      {% for n in data %}
+      <div>{{n}}</div>
+      {% endfor %}
+    </div>
+  </div>
+
+<div class="box">
+  <div class="app-title">
+    <h1>  If you have other restaurants, please fill in the following information</h1>
+  </div>
+  <form action="/add_m" method="POST">
+  <div class="location-form">
+      <input type="text" name="Name" placeholder="Name" required="required"> <br>
+      <input type="text" name="Price_Level" placeholder="Price_Level" required="required"> <br>
+      <input type="text" name="Locality" placeholder="Locality" required="required"><br>
+      <input type="text" name="LongAddress" placeholder="LongAddress" required="required"><br>
+      <input type="text" name="Longtitude" placeholder="Longtitude" required="required"><br>
+      <input type="text" name="Latitude" placeholder="Latitude" required="required"><br>
+      <input type="text" name="Country" placeholder="Country" required="required"><br>
+      <input type="text" name="City" placeholder="City" required="required"><br>
+      <input type="text" name="Cuisine_Type" placeholder="Cuisine_Type"><br>
+
+  </div>
+      <input type="submit" value="add this restaurant"  class="btn">
+  </form>
+</div>
+
+  <div class="box">
+    <div class="app-title">
+    <h1>If you want to delete a restaurant,please fill in the following information:</h1>
+    </div>
+    <form action="/delete_m" method="POST">
+    <div class="location-form">
+        <input type="text" name="Name" placeholder="Name" required="required">
+        <input type="text" name="LongAddress" placeholder="LongAddress" required="required">
+    </div>
+    <input type="submit" value="delete this restaurant"  class="btn">
+    </form>
+  </div>
+
+
+
+<div class="box">
+  <div class="app-title">
+      <h1>If you want to modify information of your restaurants, please fill in the following information:</h1>
+  </div>
+  <form action="/update_ad" method="POST">
+  <div class="location-form">
+    <h3>If you want to modify address of your restaurant:</h3>
+    <h4>Please tell us the RID of your restaurant:</h4 >
+    <input type="text" name="RID" placeholder="RID" required="required">
+    <h4>Please update following address information:</h4 >
+    <input type="text" name="Locality" placeholder="Locality" required="required">
+   <input type="text" name="LongAddress" placeholder="LongAddress" required="required">
+   <input type="text" name="Longtitude" placeholder="Longtitude" required="required">
+   <input type="text" name="Latitude" placeholder="Latitude" required="required">
+   <input type="text" name="Country" placeholder="Country" required="required">
+   <input type="text" name="City" placeholder="City">
+  </div>
+   <input type="submit" value="update the adress" class="btn">
+  </form>
+
+
+  <div class="app-title">
+    <h3>If you want to modify other information of your restaurant:</h3>
+  </div>
+  <form action="/update_m" method="POST">
+  <div class="app-title">
+    <h4>Please tell us the RID of your restaurant:</h4>
+    <input type="text" name="RID" placeholder="RID" required="required">
+    <h4>The attribute you want to change:</h4>
+    <select name="attribute">
+    <option value="Name">Name</option>
+    <option value="Price_Level">Price_Level</option>
+   <option value="Cuisine_Type">Cuisine_Type</option>
+   </select>
+   <input type="text" name="input" placeholder="input" required="required">
+  </div>
+  <input type="submit" value="update this attribute" class="btn">
+  </form>
+</div>
+
+
+
+  {% with messages = get_flashed_messages(category_filter=["okmanager","AddSuccess","updatead","UP","DS"]) %}
+    {% if messages %}
+      <script>
+        var messages = {{ messages | safe }};
+        for (var i=0; i<messages.length; i++) {
+          alert(messages[i]);
+        }
+      </script>
+    {% endif %}
+  {% endwith %}
+
+
+</body>
+</html>

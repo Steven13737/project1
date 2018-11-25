@@ -232,7 +232,9 @@ def login():
         record1.append(result[0])
     cursor1.close()
 
-    if record:
+    print record1
+
+    if record and request.form['attribute'] == 'customer':
         if request.form['attribute'] == 'customer':
             session['logged_in'] = True
             session['username'] = un
@@ -261,19 +263,38 @@ def login():
             VoteRestaurantName,VoteRestaurantName_RID = Cus.VoteRestaurant(g,text,CID)
             votedict = Cus.GetDict(VoteRestaurantName_RID)
             session['NeedVote'] = votedict
-
-            context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, voterestaurant = VoteRestaurantName)
             flash('Login scuuess','ok')
+
+            #Get Vote Number:
+            Votenum = Cus.Getvotenumber(g,text,CID)
+            print Votenum
+            votedisplay = Votenum
+
+
+            #Get History Comment
+            commmdisplay = Cus.Gethistorycomment(g,text,CID)
+
+            context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, \
+                            voterestaurant = VoteRestaurantName,votedisplay = votedisplay,\
+                            commmdisplay = commmdisplay )
             return render_template("LogForCustomer.html",**context2)
         else:
             flash('Wrong username or password','no')
             return render_template("index.html")
     if record1:
         if request.form['attribute'] == 'manager':
-            #session['logged_in'] = True
-            flash('Login scuuess','okmanager')
-            return render_template("LogForManager.html")
+            session['logged_in'] = True
+            session['username'] = un
+            cmd_m = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Password = (:pw3) '
+            cursor_m = g.conn.execute(text(cmd_m),pw3 = pw)
+            r_m = getresult(cursor_m)
+            print r_m
+            cursor_m.close()
+            context_m = dict(data = r_m)
+            flash('Login scuuess Manager','okmanager')
+            return render_template('LogForManager.html',**context_m)
         else:
+            print "abc"
             flash('Wrong username or password','no')
             return render_template("index.html")
     else:
@@ -389,16 +410,95 @@ def buy():
     date = time.strftime('%Y-%m-%d',time.localtime(time.time()))
     print date
 
+    #check if exist
+    cmd = "select * from DateConsume where CID =(:CID) and RID = (:RID) and Time_num=(:Date)"
+    cursor = g.conn.execute(text(cmd),CID = CID[0], RID = int(RID[0]), Date = date);
+    check = getresult(cursor)
+    cursor.close()
+    if check:
+        flash("Please Choose Another Restaurant",'cannotgo')
+        #Search cuisine type
+        cui = Cus.GetCuisineType(g,text)
+        #Commont Process
+        #Get cid
+        username = session.get('username')
+        CID = Cus.GetCID(g,text,username)
+        #print CID
+        #Get Restaurant need Commet
+        restaurant, crestaurant,crestaurant_time = Cus.GetResuaurant(g,text,CID)
+        #namedict = Cus.GetDict(crestaurant);
+        #session['NeedComment'] = namedict;
+        #Comine to a list
+        cres = []
+        j = 0
+        for i in range(len(crestaurant_time)):
+            cres.append(crestaurant[j] + ","+ str(crestaurant_time[i]))
+            j = j+2
+
+        #Vote Process
+        VoteRestaurantName,VoteRestaurantName_RID = Cus.VoteRestaurant(g,text,CID)
+        #votedict = Cus.GetDict(VoteRestaurantName_RID)
+        #session['NeedVote'] = votedict
+        #flash('Login scuuess','ok')
+
+        #Get Vote Number:
+        Votenum = Cus.Getvotenumber(g,text,CID)
+        #print Votenum
+        votedisplay = Votenum
+
+
+        #Get History Comment
+        commmdisplay = Cus.Gethistorycomment(g,text,CID)
+
+
+        context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, \
+                        voterestaurant = VoteRestaurantName, votedisplay = votedisplay,\
+                        commmdisplay = commmdisplay )
+        return render_template("LogForCustomer.html",**context2)
+
+
     #Insert new consume record
     cmd = "INSERT INTO DateConsume VALUES (:CID,:RID,:Date)"
     cursor = g.conn.execute(text(cmd),CID = CID[0], RID = int(RID[0]), Date = date);
-
-    #Search cuisine type
-    cmd1 = 'SELECT distinct Cuisine_Type FROM CuisineType'
-    cursor1 = g.conn.execute(text(cmd1));
-    cui = getresult(cursor1)
-    context2 = dict(cui = cui)
     flash('Thanks for consume','buysuccess')
+
+
+    #Add All information in Customer Page#
+    #Search cuisine type
+    cui = Cus.GetCuisineType(g,text)
+    #Commont Process
+    #Get cid
+    username = session.get('username')
+    CID = Cus.GetCID(g,text,username)
+    #print CID
+    #Get Restaurant need Commet
+    restaurant, crestaurant,crestaurant_time = Cus.GetResuaurant(g,text,CID)
+    namedict = Cus.GetDict(crestaurant);
+    session['NeedComment'] = namedict;
+    #Comine to a list
+    cres = []
+    j = 0
+    for i in range(len(crestaurant_time)):
+        cres.append(crestaurant[j] + ","+ str(crestaurant_time[i]))
+        j = j+2
+    #Vote Process
+    VoteRestaurantName,VoteRestaurantName_RID = Cus.VoteRestaurant(g,text,CID)
+    votedict = Cus.GetDict(VoteRestaurantName_RID)
+    session['NeedVote'] = votedict
+
+    #Get Vote Number:
+    Votenum = Cus.Getvotenumber(g,text,CID)
+    print Votenum
+    votedisplay = Votenum
+
+    #Get History Comment
+    commmdisplay = Cus.Gethistorycomment(g,text,CID)
+
+    context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, \
+                    voterestaurant = VoteRestaurantName,votedisplay = votedisplay,\
+                    commmdisplay = commmdisplay)
+
+
     return render_template("LogForCustomer.html",**context2)
 
 
@@ -432,10 +532,10 @@ def comment():
     print CID
 
     #Insert Comment
-    #rate = request.form['rate']
-    #print rate
-    #cmd = "INSERT INTO Comment VALUES (:CID, :RID, :date, :rate, :comment)"
-    #cursor = g.conn.execute(text(cmd), CID = CID[0], RID = int(RID),date = date, rate = float(rate[0]), comment = comment);
+    rate = request.form['rate']
+    print rate
+    cmd = "INSERT INTO Comment VALUES (:CID, :RID, :date, :rate, :comment)"
+    cursor = g.conn.execute(text(cmd), CID = CID[0], RID = int(RID),date = date, rate = float(rate[0]), comment = comment);
 
     #Add All information in Customer Page#
     #Search cuisine type
@@ -460,7 +560,18 @@ def comment():
     votedict = Cus.GetDict(VoteRestaurantName_RID)
     session['NeedVote'] = votedict
     flash('Comment Success','CommentSuccess')
-    context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, voterestaurant = VoteRestaurantName)
+
+    #Get History Comment
+    commmdisplay = Cus.Gethistorycomment(g,text,CID)
+
+    #Get Vote Number:
+    Votenum = Cus.Getvotenumber(g,text,CID)
+    print Votenum
+    votedisplay = Votenum
+
+    context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, \
+                    voterestaurant = VoteRestaurantName,votedisplay = votedisplay,\
+                    commmdisplay = commmdisplay )
     return  render_template("LogForCustomer.html",**context2)
 
 
@@ -480,8 +591,8 @@ def vote():
     print CID
 
     #Insert Vote Number
-    #cmd = "INSERT INTO Vote VALUES (:CID, :RID)"
-    #cursor = g.conn.execute(text(cmd), CID = CID[0], RID = int(RID));
+    cmd = "INSERT INTO Vote VALUES (:CID, :RID)"
+    cursor = g.conn.execute(text(cmd), CID = CID[0], RID = int(RID));
 
     #Add All information in Customer Page#
     #Search cuisine type
@@ -505,10 +616,212 @@ def vote():
     VoteRestaurantName,VoteRestaurantName_RID = Cus.VoteRestaurant(g,text,CID)
     votedict = Cus.GetDict(VoteRestaurantName_RID)
     session['NeedVote'] = votedict
-    context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, voterestaurant = VoteRestaurantName)
+
     flash('Vote Success','VoteSuccess')
+
+    #Get Vote Number:
+    Votenum = Cus.Getvotenumber(g,text,CID)
+    print Votenum
+    votedisplay = Votenum
+
+
+    context2 = dict(cui = cui, restaurants = restaurant, crestaurant = cres, voterestaurant = VoteRestaurantName,votedisplay = votedisplay)
     return  render_template("LogForCustomer.html",**context2)
 
+
+###############################################################################
+############################Manager############################################
+@app.route('/add_m', methods=['POST'])
+def add_m():
+    username = session.get('username')
+    n = request.form['Name']
+    pl = request.form['Price_Level']
+    loca = request.form['Locality']
+    lad = request.form['LongAddress']
+    lo = float(request.form['Longtitude'])
+    la = float(request.form['Latitude'])
+    co = request.form['Country']
+    c = request.form['City']
+    ct = request.form['Cuisine_Type']
+    print lo
+
+    cmd = 'INSERT INTO Address VALUES (:loca1, :lad1,:lo1, :la1,:co1,:c1)';
+    g.conn.execute(text(cmd),loca1 =loca, lad1 = lad,lo1 = lo, la1 = la, co1 = co, c1 = c);
+    cmd2 = 'SELECT max(RID) FROM Restaurant';
+    cursor = g.conn.execute(text(cmd2));
+    results = []
+    for result in cursor:
+        results.append(result[0])
+    cursor.close()
+    rid = int(results[0]) + 1
+    print rid
+    username = session.get('username')
+    cmd3 = 'SELECT MID FROM Manager WHERE Email = (:username)';
+    cursor3 = g.conn.execute(text(cmd3),username= username);
+    mid = getresult(cursor3)
+    cursor3.close()
+    print mid
+    cmd4 = 'INSERT INTO Restaurant VALUES (:RID,:n1,:pl1,:lad2,:m1)';
+    g.conn.execute(text(cmd4),RID = rid, n1 = n, pl1 = pl, lad2 = lad, m1= mid[0]);
+    cmd7 = 'SELECT max(ID) FROM CuisineType';
+    cursor7 = g.conn.execute(text(cmd7));
+    result7 = []
+    for result in cursor7:
+        result7.append(result[0])
+    cursor7.close()
+    id = int(result7[0]) + 1
+    print id
+    cmd6 = 'INSERT INTO CuisineType VALUES(:ID,:RID,:ct)'
+    g.conn.execute(text(cmd6),ID = id, RID = rid, ct = ct);
+    cmd5 = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:username)';
+    cursor5 = g.conn.execute(text(cmd5),username = username)
+    r5 = getresult(cursor5)
+    print r5
+    cursor5.close()
+    context5 = dict(data = r5)
+    flash('Add Restaurant Success','AddSuccess')
+    return render_template('LogForManager.html',**context5)
+
+@app.route('/delete_m', methods=['POST'])
+def delete_m():
+    username = session.get('username')
+    n = request.form['Name']
+    lad = request.form['LongAddress']
+    cmd1 = 'SELECT R.name FROM Restaurant R,Manager M WHERE M.Email = (:username) AND M.MID = R.MID';
+    cursor1 = g.conn.execute(text(cmd1),username = username);
+    result1 = getresult(cursor1)
+    print result1
+    cursor1.close()
+    count = 0
+    for i in range(len(result1)):
+        if n == result1[i]:
+            count = count + 1
+    print count
+    if count == 0:
+        flash('You do not have this restaurant!')
+        cmd4 = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:username)';
+        cursor4 = g.conn.execute(text(cmd4),username = username)
+        r4 = getresult(cursor4)
+        print r4
+        cursor4.close()
+        context4 = dict(data = r4)
+        return render_template('LogForManager.html',**context4)
+    if count == 1:
+        cmd4 = 'SELECT Rid FROM Restaurant WHERE Name = (:name) AND LongAddress = (:lad3)'
+        cursor4 = g.conn.execute(text(cmd4),name = n,lad3 = lad)
+        result4 = getresult(cursor4)
+        cursor4.close()
+        rid = result4[0]
+        cmd6 = 'DELETE FROM CuisineType WHERE RID = (:RID)'
+        g.conn.execute(text(cmd6),RID = rid)
+        cmd2 = 'DELETE FROM Restaurant WHERE Name = (:n1) AND LongAddress = (:lad1)'
+        g.conn.execute(text(cmd2),n1 = n, lad1 = lad)
+        cmd3 = 'DELETE FROM Address WHERE LongAddress = (:lad2)'
+        g.conn.execute(text(cmd3),lad2 = lad)
+        cmd5 = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:username)';
+        cursor5 = g.conn.execute(text(cmd5),username = username)
+        r5 = getresult(cursor5)
+        print r5
+        cursor5.close()
+        context5 = dict(data = r5)
+        flash('Deltet Success','DS')
+        return render_template('LogForManager.html',**context5)
+
+@app.route('/update_m', methods=['POST'])
+def update_m():
+    rid = int(request.form['RID'])
+    print rid
+    input1 = request.form['input']
+    username = session.get('username')
+    cmd1 = 'SELECT R.RID FROM Restaurant R,Manager M WHERE M.Email = (:username) AND M.MID = R.MID';
+    cursor1 = g.conn.execute(text(cmd1),username = username);
+    result1 = getresult(cursor1)
+    cursor1.close()
+    count = 0
+    for i in range(len(result1)):
+        if result1[i] == rid:
+            count = count + 1
+            print count
+    if count == 0:
+        flash('You do not have this restaurant!')
+        cmd4 = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:username)';
+        cursor4 = g.conn.execute(text(cmd4),username = username)
+        r4 = getresult(cursor4)
+        print r4
+        cursor4.close()
+        context4 = dict(data = r4)
+        return render_template('LogForManager.html',**context4)
+    if count == 1:
+        if request.form['attribute'] == 'Name':
+            cmd2 = 'UPDATE Restaurant SET Name = (:input1) WHERE RID = (:RID)'
+            g.conn.execute(text(cmd2),input1 = input1, RID = rid)
+        if request.form['attribute'] == 'Price_Level':
+            cmd3 = 'UPDATE Restaurant SET Price_Level = (:input1) WHERE RID = (:RID)'
+            g.conn.execute(text(cmd3),input1 = input1, RID = rid)
+        if request.form['attribute'] == 'Cuisine_Type':
+            cmd5 = 'UPDATE CuisineType SET Cuisine_Type = (:input1) WHERE RID = (:RID)'
+            g.conn.execute(text(cmd5),input1 = input1, RID = rid)
+        cmd4 = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:username)';
+        cursor4 = g.conn.execute(text(cmd4),username = username)
+        r4 = getresult(cursor4)
+        print r4
+        cursor4.close()
+        context4 = dict(data = r4)
+        flash('Update Attribute Success','UP')
+        return render_template('LogForManager.html',**context4)
+
+
+
+
+@app.route('/update_ad', methods=['POST'])
+def update_ad():
+    rid = int(request.form['RID'])
+    loca = request.form['Locality']
+    lad = request.form['LongAddress']
+    lo = float(request.form['Longtitude'])
+    la = float(request.form['Latitude'])
+    co = request.form['Country']
+    c = request.form['City']
+    username = session.get('username')
+    cmd1 = 'SELECT R.RID FROM Restaurant R,Manager M WHERE M.Email = (:username) AND M.MID = R.MID';
+    cursor1 = g.conn.execute(text(cmd1),username = username);
+    result1 = getresult(cursor1)
+    cursor1.close()
+    count = 0
+    cmd2 = 'SELECT LongAddress FROM Restaurant WHERE RID = (:rid1)';
+    cursor2 = g.conn.execute(text(cmd2),rid1 = rid);
+    result2 = getresult(cursor2)
+    cursor2.close()
+    add = result2[0]
+    print add
+    for i in range(len(result1)):
+        if result1[i] == rid:
+            count = count + 1
+            print count
+    if count == 0:
+        flash('You do not have this restaurant!')
+        cmd4 = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:username)';
+        cursor4 = g.conn.execute(text(cmd4),username = username)
+        r4 = getresult(cursor4)
+        print r4
+        cursor4.close()
+        context4 = dict(data = r4)
+        return render_template('LogForManager.html',**context4)
+    if count == 1:
+        cmd3 = 'INSERT INTO Address VALUES (:loca1, :lad1,:lo1, :la1,:co1,:c1)';
+        g.conn.execute(text(cmd3),loca1 =loca, lad1 = lad,lo1 = lo, la1 = la, co1 = co, c1 = c);
+        cmd5 = 'UPDATE Restaurant SET LongAddress = (:lad) WHERE RID = (:RID)'
+        g.conn.execute(text(cmd5),lad = lad, RID = rid)
+        cmd6 = 'DELETE FROM Address WHERE LongAddress = (:add2)'
+        g.conn.execute(text(cmd6),add2 = add)
+        cmd4 = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:username)';
+        cursor4 = g.conn.execute(text(cmd4),username = username)
+        r4 = getresult(cursor4)
+        print r4
+        cursor4.close()
+        context4 = dict(data = r4)
+        flash("Update Address Success",'updatead')
+        return render_template('LogForManager.html',**context4)
 ##############################################################################
 if __name__ == "__main__":
   import click

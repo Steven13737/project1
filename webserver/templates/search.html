@@ -1,30 +1,38 @@
-<html>
-  <style>
-    body{
-      font-size: 15pt;
-      font-family: arial;
-    }
-  </style>
-<body>
-  <h1>Some restaurants we found for you:</h1>
-  <div>{{results}}</div>
-  <div>
 
-    {% for n in data %}
-    <div>{{n}}</div>
-    {% endfor %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Buy Meal Plan</title>
+    <link rel="stylesheet" href="/static/stylelogin.css" type="text/css">
+  </head>
+  <body>
+    <div class="box">
+      <div class="app-title">
+        <h1>Some restaurants we found for you:</h1>
+      </div>
 
-    <form action="/buy" method="post">
-    <label>The restaurant your want to buy:</label>
-    <select  name="buyname">
-    {% for n in data %}
-    <div><option value="{{n}}">{{n}}</option></div>
-    {% endfor %}
-    </select>
-    <input type="submit" value="buy">
-    </form>
+      <div class="app-title">
+        {% for n in data %}
+          {{n}}<br>
+        {% endfor %}
+      </div>
 
+        <div class="app-title">
+          <h2>The restaurant your want to buy:</h2>
+        </div>
 
-  </div>
-</body>
+        <div class="app-title">
+          <form action="/buy" method="post">
+          <select  name="buyname">
+          {% for n in data %}
+          <div><option value="{{n}}">{{n}}</option></div>
+          {% endfor %}
+          </select>
+        </div>
+        <input type="submit" value="buy" class="btn btn-primary btn-large btn-block">
+        </form>
+    </div>
+
+  </body>
 </html>

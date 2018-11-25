@@ -2,101 +2,171 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title></title>
+    <title>Log in For Customer</title>
+    <link rel="stylesheet" href="/static/stylelogin.css" type="text/css">
   </head>
   <body>
-    Your are our customer, welcome!
-    <div >  {{username}}  </div>
 
-  <form method="post" action="/logout">
-    <input type="submit" value="logout">
-  </form>
+      <ul>
+      <li><a>Your are our customer, welcome! {{username}}</a></li>
+      <li><a>
+          <form method="post" action="/logout">
+            <input type="submit" value="logout"  class="btn btn-primary btn-large btn-block">
+          </form>
+      </a></li>
+    </ul>
 
+    <div class="box">
+      <div class="app-title">
+        <h1> The nearest restaurant</h1>
+      </div>
 
+        <form  action="/locate" method="post">
+        <br>
+        <div class="location-form">
+          <input type="text" name="Longitude"  placeholder="Longitude" required="required">
+          <input type="text" name="Latitude" placeholder="Latitude" required="required">
+        </div>
+        <input type="submit" value = "Submit" class="btn btn-primary btn-large btn-block">
+        </form>
+    </div>
 
-<h1>You can get the nearest restaurant</h1>
-  <form  action="/locate" method="post">
-  <p>Please enter your location:
-  <input type="text" name="Longitude">
-  <input type="text" name="Latitude">
-  <input type="submit" value = "Submit" >
-  </p >
-  </form>
+    <div class="box">
+      <div class="app-title">
+        <h1>You can search for the restaurant you like</h1>
+      </div>
 
+      <form  action="/search" method="POST" style="text-align:center;text-align-last:center">
+      <div class="location-form">
+        <h2>Price Level</h2>
+        <select  name="Price_level">
+           <option value="1">1</option>
+           <option value="2">2</option>
+           <option value="3">3</option>
+           <option value="4">4</option>
+         </select>
+         <h2>Cuisine Type</h2>
+         <select  name="Cuisine_Type" style="text-align:center;text-align-last:center">
+             {% for n in cui %}
+           <div><option value={{n}}>{{n}}</option></div>
+             {% endfor %}
+         </select>
+      </div>
+      <input type="submit" value="search" class="btn btn-primary btn-large btn-block">
 
-<h1>You can search for the restaurant you like</h1>
+      </form>
+    </div>
 
-  <form  action="/search" method="POST">
-    <p>Condition:
-    <label>The Price_level you can accept:</label>
-    <select  name="Price_level">
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-    </select>
+<!-- Here are comment  -->
+    <div class="box">
+      <div class="app-title">
+          <h1>These are history restaurants</h1>
+      </div>
 
-    <label>The Cuisine_Type you like:</label>
-    <select  name="Cuisine_Type">
-    {% for n in cui %}
-    <div><option value={{n}}>{{n}}</option></div>
+      <!-- Search Consumed Restaurants -->
+      <div style="text-align:center">
+        {% for n in restaurants %}
+        <div>{{n}}</div>
+        {% endfor %}
+      </div>
+      <div class="app-title">
+          <h1>You can comment the restaurant which you haven't commented</h1>
+      </div>
+      <!-- Comment Consumed Restaurants -->
+      <div class="inputinfo">
+        <form action="/comment" method="post">
+          <table align="center">
+            <tr>
+              <th>The Restaurant</th>
+              <th>
+                <select  name="commentname">
+                {% for n in crestaurant %}
+                <div><option value="{{n}}">{{n}}</option></div>
+                {% endfor %}
+                </select>
+              </th>
+            </tr>
+                <th>Rate</th>
+                <th>
+                    <input type="number" name="rate" required="required" min="0.1" max="4.9" step="0.1">
+                </th>
+            <tr>
+                <th>Comment</th>
+                <th>
+                  <input type="text" name = "comment" required="required">
+                </th>
+            </tr>
+          </table>
+            <input type="submit" value="comment" class="btn btn-primary btn-large btn-block">
+        </form>
+
+        <div class="app-title">
+          <h2>The restaurant you have commented</h2>
+        </div>
+        <div style="text-align:center">
+          {% for n in commmdisplay %}
+          <div>{{n}}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+<div class="box">
+  <div class="app-title">
+    <h1>You can vote for restaurant you haven't voted</h1>
+  </div>
+
+  <div style="text-align:center">
+    {% for n in voterestaurant %}
+    <div>{{n}}</div>
     {% endfor %}
-    </select>
+  </div>
 
-    <input type="submit" value="search">
-    </p>
-  </form>
+  <div class="app-title">
+    <h2>The comment of restaurant you have been to</h2>
+  </div>
+  <div class="inputinfo">
+    <form action="/vote" method="post">
+      <table align="center">
+        <tr>
+          <th>Vote Name</th>
+          <th>  <select  name="votename">
+            {% for n in voterestaurant %}
+            <div><option value="{{n}}">{{n}}</option></div>
+            {% endfor %}
+            </select></th>
+        </tr>
+      </table>
 
-<h1>These are history restaurants</h1>
-<!-- Search Consumed Restaurants -->
-<div>
-  {% for n in restaurants %}
-  <div>{{n}}</div>
-  {% endfor %}
+      <div class="app-title">
+        <h2>The vote number of restaurant you have been to</h2>
+      </div>
+    <div class="app-title">
+      {% for n in votedisplay %}
+      {{n}}<br>
+      {% endfor %}
+    </div>
+
+    <input type="submit" value="vote" class="btn btn-primary btn-large btn-block">
+    </form>
+  </div>
+
+
 </div>
 
-<h1>You can comment the restaurant which you haven't commented</h1>
-<!-- Comment Consumed Restaurants -->
-<form action="/comment" method="post">
-<label>The restaurant your want to comment:</label>
-<select  name="commentname">
-{% for n in crestaurant %}
-<div><option value="{{n}}">{{n}}</option></div>
-{% endfor %}
-</select>
-Rate <input type="number" name="rate" required="required" min="0.1" max="4.9" step="0.1">
-Comment<input type="text" name = "comment" required="required">
-<input type="submit" value="comment">
-</form>
-
-<h1>You can vote for restaurant you haven't voted</h1>
-<div>
-  {% for n in voterestaurant %}
-  <div>{{n}}</div>
-  {% endfor %}
-</div>
-
-<form action="/vote" method="post">
-<label>The restaurant your want to comment:</label>
-<select  name="votename">
-{% for n in voterestaurant %}
-<div><option value="{{n}}">{{n}}</option></div>
-{% endfor %}
-</select>
-<input type="submit" value="vote">
-</form>
+{% with messages = get_flashed_messages(category_filter=["ok","buysuccess",'VoteSuccess','CommentSuccess','cannotgo']) %}
+  {% if messages %}
+    <script>
+      var messages = {{ messages | safe }};
+      for (var i=0; i<messages.length; i++) {
+        alert(messages[i]);
+      }
+    </script>
+  {% endif %}
+{% endwith %}
 
 
-  {% with messages = get_flashed_messages(category_filter=["ok","buysuccess",'VoteSuccess','CommentSuccess']) %}
-    {% if messages %}
-      <script>
-        var messages = {{ messages | safe }};
-        for (var i=0; i<messages.length; i++) {
-          alert(messages[i]);
-        }
-      </script>
-    {% endif %}
-  {% endwith %}
 
-</body>
+
+  </body>
 </html>

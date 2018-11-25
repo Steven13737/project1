@@ -86,3 +86,42 @@ def GetCuisineType(g,text):
     cursor.close()
     #print cui
     return cui
+
+def Getvotenumber(g,text,CID):
+    cmd = "with namecount(RID,num) as (\
+            select RID, count(*) from Vote where RID in ( \
+            select distinct r.RID from DateConsume d, Restaurant r where d.CID = (:CID) and r.RID = d.RID )\
+            group by RID)\
+            select R.Name,n.num from namecount n,Restaurant R where n.RID = R.RID order by n.num DESC"
+    cursor = g.conn.execute(text(cmd),CID = CID[0]);
+    votenum = getresult(cursor)
+    cursor.close()
+    return votenum
+
+def combinelist(a):
+    cres = []
+    i = 0
+    while (i<=(len(a)/2)):
+        cres.append(str(a[i]) + ","+ str(a[i+1]))
+        i = i+2
+    return cres
+
+
+def Gethistorycomment(g,text,CID):
+    cmd = "with history(cid,rid,time) as ( \
+            select d.CID,d.RID,d.Time_num from DateConsume d where d.CID = (:CID))\
+            select r.name, h.time, c.Rate, c.Content from Comment c, history h, Restaurant r\
+            where h.cid = c.CID and h.rid = c.RID and h.time = c.Time_num and c.RID = r.RID"
+    cursor = g.conn.execute(text(cmd),CID = CID[0]);
+    comm= getresult(cursor)
+    cursor.close()
+    print comm
+    # dcomm = []
+    # i = 0
+    # while (i<=(len(comm))):
+    #     if comm[i+3]:
+    #         dcomm.append(str(comm[i]) + "--"+ str(comm[i+1]) + str(comm[i+2]) + str(comm[i+3]))
+    #     else:
+    #         dcomm.append(str(comm[i]) + "--"+ str(comm[i+1]) + str(comm[i+2]))
+    #     i = i+3
+    return comm

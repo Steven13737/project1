@@ -1,17 +1,21 @@
-<html>
-  <style>
-    body{
-      font-size: 15pt;
-      font-family: arial;
-    }
-  </style>
-<body>
-  <h1>Some restaurants we found that are near to you:</h1>
-  <div>{{data}}</div>
-  <div>
-    {% for n in data %}
-    <div>{{n}}</div>
-    {% endfor %}
-  </div>
-</body>
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Location Search</title>
+    <link rel="stylesheet" href="/static/stylelogin.css" type="text/css">
+  </head>
+  <body>
+    <div class="box">
+      <div class="app-title">
+        <h1>Some restaurants we found that are near to you:</h1>
+      </div>
+    <div class="app-title">
+      {% for n in data %}
+      <div>{{n}}</div>
+      {% endfor %}
+    </div>
+    </div>
+  </body>
 </html>

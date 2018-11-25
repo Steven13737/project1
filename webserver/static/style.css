@@ -23,11 +23,21 @@ border-radius: 5px
 .app-title {
 text-align: center;
 color: #777;
+margin-bottom: 10px;
 }
+
+.app-subtitle{
+	text-align: center;
+	margin-bottom: 20px;
+	margin-top:1px;
+}
+
+ h1{margin-bottom:0;}
 
 .login-form {
 text-align: center;
 }
+
 .control-group {
 margin-bottom: 10px;
 }
@@ -54,7 +64,7 @@ option{
   background-color: #ECF0F1;
   border: 2px solid transparent;
   border-radius: 3px;
-  font-size: 16px;
+  font-size: 10px;
   font-weight: 200;
   padding: 10px 0;
   width: 220px;
@@ -69,13 +79,13 @@ option{
   line-height: 25px;
   padding: 10px 0;
   text-decoration: none;
-  text-shadow: none;
   border-radius: 3px;
   box-shadow: none;
   transition: 0.25s;
   display: block;
   width: 250px;
   margin: 0 auto;
+	font-weight: 200;
 }
 
 .btn:hover {
@@ -87,4 +97,7 @@ option{
   color: #444;
   display: block;
 	margin-top: 12px;
+}
+td{
+	display: block;
 }

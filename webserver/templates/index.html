@@ -2,6 +2,9 @@
 {% block body %}
 {% if session['logged_in'] %}
 <p>You're logged in already!</p>
+<form method="post" action="/logout">
+	<input type="submit" value="logout"  class="btn btn-primary btn-large btn-block">
+</form>
 {% else %}
 
 
@@ -11,26 +14,32 @@
 			<div class="app-title">
 				<h1>Restaurant Recommondation System</h1>
 			</div>
+			<div class="app-subtitle">
+					<a href="https://github.com/Steven13737/project1/tree/master/webserver">	Dsigned by Yi Qin and Ge Qu for CSOR4111</a>
+			</div>
 
 			<div class="login-form">
 				<div class="control-group">
-				<input type="text" class="login-field" value="" placeholder="username" name="username">
+				<input type="text" class="login-field" value="" placeholder="username" name="username" required="required">
 				<label class="login-field-icon fui-user" for="login-name"></label>
 				</div>
 
 				<div class="control-group">
-				<input type="password" class="login-field" value="" placeholder="password" name="password">
+				<input type="password" class="login-field" value="" placeholder="password" name="password" required="required">
 				<label class="login-field-icon fui-lock" for="login-pass"></label>
 				</div>
 
         <div class="control-group">
-          <select class="login-field" name="attribute">
-            <option value="customer">customer</option>
-            <option value="manager">manager</option>
+          <select class="login-field" name="attribute" style="text-align:center;text-align-last:center">
+							<option value="customer">customer</option>
+	            <option value="manager">manager</option>
           </select>
         </div>
-                <input type="submit" value="Log in" class="btn btn-primary btn-large btn-block" >
+            <input type="submit" value="Log in" class="btn btn-primary btn-large btn-block" >
 			    <br>
+					<div class="control-group">
+						<a href="/sign">Still don't have an account? </a>
+					</div>
 			</div>
 		</div>
 	</div>
@@ -38,10 +47,6 @@
 
 {% endif %}
 {% endblock %}
-
-Sign up
-<h2><a href="/sign">Still don't have an account? </a></h2>
-
 
 {% with messages = get_flashed_messages(category_filter=["no","siguupsuccess","logout"]) %}
   {% if messages %}
