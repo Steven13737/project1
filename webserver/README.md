@@ -1,4 +1,4 @@
-This is a Restaurant Recommondation Website
+This is a Restaurant Recommendation Website
 
 We implempent the following feature:
 
