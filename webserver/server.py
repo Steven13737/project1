@@ -232,7 +232,7 @@ def login():
         record1.append(result[0])
     cursor1.close()
 
-    print record1
+    print ("Search For Manager",record1)
 
     if record and request.form['attribute'] == 'customer':
         if request.form['attribute'] == 'customer':
@@ -285,10 +285,12 @@ def login():
         if request.form['attribute'] == 'manager':
             session['logged_in'] = True
             session['username'] = un
-            cmd_m = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Password = (:pw3) '
-            cursor_m = g.conn.execute(text(cmd_m),pw3 = pw)
+            print ("Hello,Manager",un)
+            #print un
+            cmd_m = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:pw3)'
+            cursor_m = g.conn.execute(text(cmd_m),pw3 = un)
             r_m = getresult(cursor_m)
-            print r_m
+            print ("Your Restaurant:",r_m)
             cursor_m.close()
             context_m = dict(data = r_m)
             flash('Login scuuess Manager','okmanager')
