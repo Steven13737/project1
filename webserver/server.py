@@ -315,10 +315,27 @@ def signupsuccess():
     password = request.form['password']
     name = request.form['name']
 
+    cmd1 = 'SELECT COUNT(*) FROM Customer WHERE Email = (:username1)'
+    cursor1 = g.conn.execute(text(cmd1),username1 = username)
+    result1 = getresult(cursor1)
+    ec = result1[0]
+    print ec
+
+    cmd2 = 'SELECT COUNT(*) FROM Manager WHERE Email = (:username1)'
+    cursor2 = g.conn.execute(text(cmd2),username1 = username)
+    result2 = getresult(cursor2)
+    em = result2[0]
+    print em
+
     if not username or not password or not name:
         flash('Email and Password can not be empty','signupfail')
         return render_template('signup.html')
     if request.form['attribute'] == 'customer':
+
+        if ec == 1:
+            flash('Email already existed','signupfail')
+            return render_template('signup.html')
+
         cmd_c = 'SELECT max(CID) FROM Customer';
         cursor_c = g.conn.execute(text(cmd_c));
         result_c = []
@@ -333,6 +350,11 @@ def signupsuccess():
         return render_template("index.html")
 
     if request.form['attribute'] == 'manager':
+
+        if em == 1:
+            flash('Email already existed','signupfail')
+            return render_template('signup.html')
+
         cmd_m = 'SELECT max(MID) FROM Manager';
         cursor_m = g.conn.execute(text(cmd_m));
         result_m = []
@@ -645,6 +667,22 @@ def add_m():
     ct = request.form['Cuisine_Type']
     print lo
 
+    cmd8 = 'SELECT COUNT(*) FROM Restaurant WHERE LongAddress = (:lad)'
+    cursor8 = g.conn.execute(text(cmd8),lad = lad)
+    result8 = getresult(cursor8)
+    er = result8[0]
+
+    if er ==1:
+        cmd_i = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:username)';
+        cursor_i = g.conn.execute(text(cmd_i),username = username)
+        r_i = getresult(cursor_i)
+        print r_i
+        cursor_i.close()
+        context_i = dict(data = r_i)
+        flash('The LongAddress already exists!','Addfail')
+        return render_template('LogForManager.html',**context_i)
+
+
     cmd = 'INSERT INTO Address VALUES (:loca1, :lad1,:lo1, :la1,:co1,:c1)';
     g.conn.execute(text(cmd),loca1 =loca, lad1 = lad,lo1 = lo, la1 = la, co1 = co, c1 = c);
     cmd2 = 'SELECT max(RID) FROM Restaurant';
@@ -756,6 +794,21 @@ def update_m():
             cmd2 = 'UPDATE Restaurant SET Name = (:input1) WHERE RID = (:RID)'
             g.conn.execute(text(cmd2),input1 = input1, RID = rid)
         if request.form['attribute'] == 'Price_Level':
+
+            pl = int(request.form['input'])
+
+            if pl < 1 or pl >4:
+                epl = 1
+                print epl
+                flash('The Price Level is invaild!','Pricefail')
+                cmd_i = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:username)';
+                cursor_i = g.conn.execute(text(cmd_i),username = username)
+                r_i = getresult(cursor_i)
+                print r_i
+                cursor_i.close()
+                context_i = dict(data = r_i)
+                return render_template('LogForManager.html',**context_i)
+
             cmd3 = 'UPDATE Restaurant SET Price_Level = (:input1) WHERE RID = (:RID)'
             g.conn.execute(text(cmd3),input1 = input1, RID = rid)
         if request.form['attribute'] == 'Cuisine_Type':
@@ -783,6 +836,22 @@ def update_ad():
     co = request.form['Country']
     c = request.form['City']
     username = session.get('username')
+
+    cmd8 = 'SELECT COUNT(*) FROM Address WHERE LongAddress = (:lad)'
+    cursor8 = g.conn.execute(text(cmd8),lad = lad)
+    result8 = getresult(cursor8)
+    er = result8[0]
+    print er
+    if er == 1:
+        flash('The LongAddress already exists!','Addfail')
+        cmd_i = 'SELECT R.RID, R.Name, R.Price_Level,R.LongAddress,R.MID FROM Restaurant R, Manager M WHERE R.Mid = M.Mid AND M.Email = (:username)';
+        cursor_i = g.conn.execute(text(cmd_i),username = username)
+        r_i = getresult(cursor_i)
+        print r_i
+        cursor_i.close()
+        context_i = dict(data = r_i)
+        return render_template('LogForManager.html',**context_i)
+
     cmd1 = 'SELECT R.RID FROM Restaurant R,Manager M WHERE M.Email = (:username) AND M.MID = R.MID';
     cursor1 = g.conn.execute(text(cmd1),username = username);
     result1 = getresult(cursor1)

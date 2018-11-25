@@ -32,7 +32,8 @@
   <form action="/add_m" method="POST">
   <div class="location-form">
       <input type="text" name="Name" placeholder="Name" required="required"> <br>
-      <input type="text" name="Price_Level" placeholder="Price_Level" required="required"> <br>
+      <!-- <input type="text" name="Price_Level" placeholder="Price_Level" required="required"> <br> -->
+      <input type="number" name="Price_Level" placeholder="Price Level" required="required" min="1.0" max="4.0" step="1"> <br>
       <input type="text" name="Locality" placeholder="Locality" required="required"><br>
       <input type="text" name="LongAddress" placeholder="LongAddress" required="required"><br>
       <input type="text" name="Longtitude" placeholder="Longtitude" required="required"><br>
@@ -103,7 +104,7 @@
 
 
 
-  {% with messages = get_flashed_messages(category_filter=["okmanager","AddSuccess","updatead","UP","DS"]) %}
+  {% with messages = get_flashed_messages(category_filter=["okmanager","AddSuccess","updatead","UP","DS","Addfail","Pricefail"]) %}
     {% if messages %}
       <script>
         var messages = {{ messages | safe }};
